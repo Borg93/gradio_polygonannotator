@@ -1,0 +1,18 @@
+.eggs/
+dist/
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+__tmp/*
+*.pyi
+.mypycache
+.ruff_cache
+node_modules
+backend/**/templates/
+.venv
+
+git commit -m "test of component"
+git branch -M main
+git remote add origin https://github.com/Borg93/gradio_polygonannotator.git
+git push -u origin main
