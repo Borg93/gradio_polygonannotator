@@ -1,6 +1,22 @@
+---
+tags:
+- gradio-custom-component
+- Polygon
+- viewer
+- annotations
+title: gradio_polygonannotator
+short_description: Polygon viewer tool for Gradio
+colorFrom: blue
+colorTo: yellow
+sdk: gradio
+pinned: false
+app_file: app.py
+emoji: 👀
+sdk_version: 5.46.1
+---
 
 # `gradio_polygonannotator`
-<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.1.0%20-%20orange"> <a href="https://github.com/yourusername/gradio-polygonannotator/issues" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Issues-white?logo=github&logoColor=black"></a> 
+<img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.1.0%20-%20orange"> <a href="https://github.com/yourusername/gradio-polygonannotator/issues" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Issues-white?logo=github&logoColor=black"></a>
 
 Interactive polygon annotation component for Gradio with multi-selection, hover effects, and customizable appearance
 
@@ -381,4 +397,3 @@ The code snippet below is accurate in cases where the component is used as both 
  ) -> dict | None:
      return value
  ```
- 
