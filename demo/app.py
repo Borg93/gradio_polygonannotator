@@ -36,9 +36,10 @@ example_data = {
             "mask_opacity": 0.2,
             "stroke_width": 1.5,
             "stroke_opacity": 0.8,
-        }
-    ]
+        },
+    ],
 }
+
 
 def handle_selection(data, evt: gr.SelectData):
     """Handle polygon selection and display info"""
@@ -51,6 +52,7 @@ def handle_selection(data, evt: gr.SelectData):
                 info += f"• {poly_id}\n"
         return info
     return "Click on polygons to select them. Use Ctrl/Cmd+Click for multi-selection."
+
 
 with gr.Blocks() as demo:
     gr.Markdown("""
@@ -72,15 +74,11 @@ with gr.Blocks() as demo:
             selected_info = gr.Textbox(
                 label="Selected Regions",
                 lines=6,
-                value="Click on polygons to select them. Use Ctrl/Cmd+Click for multi-selection."
+                value="Click on polygons to select them. Use Ctrl/Cmd+Click for multi-selection.",
             )
 
     # Handle selection events
-    annotator.select(
-        handle_selection,
-        inputs=[annotator],
-        outputs=[selected_info]
-    )
+    annotator.select(handle_selection, inputs=[annotator], outputs=[selected_info])
 
 if __name__ == "__main__":
     demo.launch()

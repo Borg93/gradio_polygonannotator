@@ -1,9 +1,142 @@
-
 import gradio as gr
 from app import demo as app
 import os
 
-_docs = {'PolygonAnnotator': {'description': 'Interactive polygon annotation component for visualizing and selecting polygon regions on images.\n\nThe PolygonAnnotator displays an image with customizable polygon overlays that users can interact with.\nFeatures include multi-selection with Ctrl/Cmd+click, hover effects, and customizable appearance including\nstroke width, opacity settings for both fill and stroke, with separate settings for selected states.\n\nPerfect for:\n- Document layout analysis and region selection\n- Image segmentation visualization\n- Interactive annotation review and editing\n- Object detection result visualization', 'members': {'__init__': {'value': {'type': 'dict | None', 'default': 'None', 'description': "Dictionary containing 'image' (FileData), 'polygons' (list with id, coordinates, color, opacities),"}, 'label': {'type': 'str | I18nData | None', 'default': 'None', 'description': 'Component label shown above the annotator.'}, 'every': {'type': 'Timer | float | None', 'default': 'None', 'description': 'Continuously calls `value` to recalculate it if `value` is a function.'}, 'inputs': {'type': 'Component | Sequence[Component] | set[Component] | None', 'default': 'None', 'description': "Components used as inputs to calculate `value` if it's a function."}, 'show_label': {'type': 'bool | None', 'default': 'None', 'description': 'Whether to display the label.'}, 'show_download_button': {'type': 'bool', 'default': 'True', 'description': 'Whether to show image download button.'}, 'height': {'type': 'int | str | None', 'default': 'None', 'description': 'Component height in pixels or CSS units.'}, 'width': {'type': 'int | str | None', 'default': 'None', 'description': 'Component width in pixels or CSS units.'}, 'container': {'type': 'bool', 'default': 'True', 'description': 'Whether to wrap component in a container with padding.'}, 'scale': {'type': 'int | None', 'default': 'None', 'description': 'Relative size compared to adjacent components.'}, 'min_width': {'type': 'int', 'default': '160', 'description': 'Minimum pixel width before wrapping.'}, 'interactive': {'type': 'bool | None', 'default': 'None', 'description': 'Whether users can interact with polygons (selection/deselection).'}, 'visible': {'type': 'bool | Literal["hidden"]', 'default': 'True', 'description': 'Whether component is visible ("hidden" keeps it in DOM but invisible).'}, 'elem_id': {'type': 'str | None', 'default': 'None', 'description': 'HTML DOM id for CSS targeting.'}, 'elem_classes': {'type': 'list[str] | str | None', 'default': 'None', 'description': 'HTML DOM classes for CSS targeting.'}, 'render': {'type': 'bool', 'default': 'True', 'description': 'Whether to render the component immediately.'}, 'key': {'type': 'int | str | tuple[int | str, ...] | None', 'default': 'None', 'description': 'Key for maintaining component identity across re-renders.'}, 'preserved_by_key': {'type': 'list[str] | str | None', 'default': '"value"', 'description': 'Parameters preserved across re-renders with same key.'}}, 'postprocess': {'value': {'type': 'dict | None', 'description': "Dictionary containing 'image' (file path or URL), 'polygons' (list of polygon dictionaries"}}, 'preprocess': {'return': {'type': 'dict | None', 'description': 'Dictionary with image path, polygon data including coordinates, colors, opacities,'}, 'value': None}}, 'events': {'clear': {'type': None, 'default': None, 'description': 'This listener is triggered when the user clears the PolygonAnnotator using the clear button for the component.'}, 'change': {'type': None, 'default': None, 'description': 'Triggered when the value of the PolygonAnnotator changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger). See `.input()` for a listener that is only triggered by user input.'}, 'upload': {'type': None, 'default': None, 'description': 'This listener is triggered when the user uploads a file into the PolygonAnnotator.'}, 'select': {'type': None, 'default': None, 'description': 'Event listener for when the user selects or deselects the PolygonAnnotator. Uses event data gradio.SelectData to carry `value` referring to the label of the PolygonAnnotator, and `selected` to refer to state of the PolygonAnnotator. See EventData documentation on how to use this event data'}}}, '__meta__': {'additional_interfaces': {}, 'user_fn_refs': {'PolygonAnnotator': []}}}
+_docs = {
+    "PolygonAnnotator": {
+        "description": "Interactive polygon annotation component for visualizing and selecting polygon regions on images.\n\nThe PolygonAnnotator displays an image with customizable polygon overlays that users can interact with.\nFeatures include multi-selection with Ctrl/Cmd+click, hover effects, and customizable appearance including\nstroke width, opacity settings for both fill and stroke, with separate settings for selected states.\n\nPerfect for:\n- Document layout analysis and region selection\n- Image segmentation visualization\n- Interactive annotation review and editing\n- Object detection result visualization",
+        "members": {
+            "__init__": {
+                "value": {
+                    "type": "dict | None",
+                    "default": "None",
+                    "description": "Dictionary containing 'image' (FileData), 'polygons' (list with id, coordinates, color, opacities),",
+                },
+                "label": {
+                    "type": "str | I18nData | None",
+                    "default": "None",
+                    "description": "Component label shown above the annotator.",
+                },
+                "every": {
+                    "type": "Timer | float | None",
+                    "default": "None",
+                    "description": "Continuously calls `value` to recalculate it if `value` is a function.",
+                },
+                "inputs": {
+                    "type": "Component | Sequence[Component] | set[Component] | None",
+                    "default": "None",
+                    "description": "Components used as inputs to calculate `value` if it's a function.",
+                },
+                "show_label": {
+                    "type": "bool | None",
+                    "default": "None",
+                    "description": "Whether to display the label.",
+                },
+                "show_download_button": {
+                    "type": "bool",
+                    "default": "True",
+                    "description": "Whether to show image download button.",
+                },
+                "height": {
+                    "type": "int | str | None",
+                    "default": "None",
+                    "description": "Component height in pixels or CSS units.",
+                },
+                "width": {
+                    "type": "int | str | None",
+                    "default": "None",
+                    "description": "Component width in pixels or CSS units.",
+                },
+                "container": {
+                    "type": "bool",
+                    "default": "True",
+                    "description": "Whether to wrap component in a container with padding.",
+                },
+                "scale": {
+                    "type": "int | None",
+                    "default": "None",
+                    "description": "Relative size compared to adjacent components.",
+                },
+                "min_width": {
+                    "type": "int",
+                    "default": "160",
+                    "description": "Minimum pixel width before wrapping.",
+                },
+                "interactive": {
+                    "type": "bool | None",
+                    "default": "None",
+                    "description": "Whether users can interact with polygons (selection/deselection).",
+                },
+                "visible": {
+                    "type": 'bool | Literal["hidden"]',
+                    "default": "True",
+                    "description": 'Whether component is visible ("hidden" keeps it in DOM but invisible).',
+                },
+                "elem_id": {
+                    "type": "str | None",
+                    "default": "None",
+                    "description": "HTML DOM id for CSS targeting.",
+                },
+                "elem_classes": {
+                    "type": "list[str] | str | None",
+                    "default": "None",
+                    "description": "HTML DOM classes for CSS targeting.",
+                },
+                "render": {
+                    "type": "bool",
+                    "default": "True",
+                    "description": "Whether to render the component immediately.",
+                },
+                "key": {
+                    "type": "int | str | tuple[int | str, ...] | None",
+                    "default": "None",
+                    "description": "Key for maintaining component identity across re-renders.",
+                },
+                "preserved_by_key": {
+                    "type": "list[str] | str | None",
+                    "default": '"value"',
+                    "description": "Parameters preserved across re-renders with same key.",
+                },
+            },
+            "postprocess": {
+                "value": {
+                    "type": "dict | None",
+                    "description": "Dictionary containing 'image' (file path or URL), 'polygons' (list of polygon dictionaries",
+                }
+            },
+            "preprocess": {
+                "return": {
+                    "type": "dict | None",
+                    "description": "Dictionary with image path, polygon data including coordinates, colors, opacities,",
+                },
+                "value": None,
+            },
+        },
+        "events": {
+            "clear": {
+                "type": None,
+                "default": None,
+                "description": "This listener is triggered when the user clears the PolygonAnnotator using the clear button for the component.",
+            },
+            "change": {
+                "type": None,
+                "default": None,
+                "description": "Triggered when the value of the PolygonAnnotator changes either because of user input (e.g. a user types in a textbox) OR because of a function update (e.g. an image receives a value from the output of an event trigger). See `.input()` for a listener that is only triggered by user input.",
+            },
+            "upload": {
+                "type": None,
+                "default": None,
+                "description": "This listener is triggered when the user uploads a file into the PolygonAnnotator.",
+            },
+            "select": {
+                "type": None,
+                "default": None,
+                "description": "Event listener for when the user selects or deselects the PolygonAnnotator. Uses event data gradio.SelectData to carry `value` referring to the label of the PolygonAnnotator, and `selected` to refer to state of the PolygonAnnotator. See EventData documentation on how to use this event data",
+            },
+        },
+    },
+    "__meta__": {"additional_interfaces": {}, "user_fn_refs": {"PolygonAnnotator": []}},
+}
 
 abs_path = os.path.join(os.path.dirname(__file__), "css.css")
 
@@ -17,7 +150,7 @@ with gr.Blocks(
     ),
 ) as demo:
     gr.Markdown(
-"""
+        """
 # `gradio_polygonannotator`
 
 <div style="display: flex; gap: 7px;">
@@ -25,10 +158,13 @@ with gr.Blocks(
 </div>
 
 Interactive polygon annotation component for Gradio with multi-selection, hover effects, and customizable appearance
-""", elem_classes=["md-custom"], header_links=True)
+""",
+        elem_classes=["md-custom"],
+        header_links=True,
+    )
     app.render()
     gr.Markdown(
-"""
+        """
 ## Installation
 
 ```bash
@@ -126,25 +262,28 @@ if __name__ == "__main__":
     demo.launch()
 
 ```
-""", elem_classes=["md-custom"], header_links=True)
+""",
+        elem_classes=["md-custom"],
+        header_links=True,
+    )
 
-
-    gr.Markdown("""
+    gr.Markdown(
+        """
 ## `PolygonAnnotator`
 
 ### Initialization
-""", elem_classes=["md-custom"], header_links=True)
+""",
+        elem_classes=["md-custom"],
+        header_links=True,
+    )
 
     gr.ParamViewer(value=_docs["PolygonAnnotator"]["members"]["__init__"], linkify=[])
 
-
     gr.Markdown("### Events")
-    gr.ParamViewer(value=_docs["PolygonAnnotator"]["events"], linkify=['Event'])
+    gr.ParamViewer(value=_docs["PolygonAnnotator"]["events"], linkify=["Event"])
 
-
-
-
-    gr.Markdown("""
+    gr.Markdown(
+        """
 
 ### User function
 
@@ -164,12 +303,14 @@ def predict(
 ) -> dict | None:
     return value
 ```
-""", elem_classes=["md-custom", "PolygonAnnotator-user-fn"], header_links=True)
+""",
+        elem_classes=["md-custom", "PolygonAnnotator-user-fn"],
+        header_links=True,
+    )
 
-
-
-
-    demo.load(None, js=r"""function() {
+    demo.load(
+        None,
+        js=r"""function() {
     const refs = {};
     const user_fn_refs = {
           PolygonAnnotator: [], };
@@ -203,6 +344,7 @@ def predict(
     })
 }
 
-""")
+""",
+    )
 
 demo.launch()

@@ -23,14 +23,20 @@ class Polygon(GradioModel):
     mask_opacity: Optional[float] = 0.2  # fill opacity from 0.0 to 1.0, default 0.2
     stroke_width: Optional[float] = 0.7  # stroke width in pixels, default 0.7
     stroke_opacity: Optional[float] = 0.6  # stroke opacity from 0.0 to 1.0, default 0.6
-    selected_mask_opacity: Optional[float] = 0.5  # mask opacity when selected, default 0.5
-    selected_stroke_opacity: Optional[float] = 1.0  # stroke opacity when selected, default 1.0
+    selected_mask_opacity: Optional[float] = (
+        0.5  # mask opacity when selected, default 0.5
+    )
+    selected_stroke_opacity: Optional[float] = (
+        1.0  # stroke opacity when selected, default 1.0
+    )
 
 
 class PolygonAnnotatorData(GradioModel):
     image: FileData
     polygons: List[Polygon]
-    selected_polygons: Optional[List[str]] = None  # List of IDs of the currently selected polygons
+    selected_polygons: Optional[List[str]] = (
+        None  # List of IDs of the currently selected polygons
+    )
 
 
 class PolygonAnnotator(Component):
@@ -143,11 +149,11 @@ class PolygonAnnotator(Component):
                     "stroke_width": p.stroke_width,
                     "stroke_opacity": p.stroke_opacity,
                     "selected_mask_opacity": p.selected_mask_opacity,
-                    "selected_stroke_opacity": p.selected_stroke_opacity
+                    "selected_stroke_opacity": p.selected_stroke_opacity,
                 }
                 for p in payload.polygons
             ],
-            "selected_polygons": payload.selected_polygons
+            "selected_polygons": payload.selected_polygons,
         }
 
     def postprocess(self, value: dict | None) -> PolygonAnnotatorData | None:
@@ -177,18 +183,20 @@ class PolygonAnnotator(Component):
                     id=poly["id"],
                     coordinates=poly["coordinates"],
                     color=poly.get("color", "#FF0000"),
-                    mask_opacity=poly.get("mask_opacity", poly.get("opacity", 0.2)),  # Support old 'opacity' key for backwards compatibility
+                    mask_opacity=poly.get(
+                        "mask_opacity", poly.get("opacity", 0.2)
+                    ),  # Support old 'opacity' key for backwards compatibility
                     stroke_width=poly.get("stroke_width", 0.7),
                     stroke_opacity=poly.get("stroke_opacity", 0.6),
                     selected_mask_opacity=poly.get("selected_mask_opacity", 0.5),
-                    selected_stroke_opacity=poly.get("selected_stroke_opacity", 1.0)
+                    selected_stroke_opacity=poly.get("selected_stroke_opacity", 1.0),
                 )
             )
 
         return PolygonAnnotatorData(
             image=image_data,
             polygons=polygons,
-            selected_polygons=value.get("selected_polygons")
+            selected_polygons=value.get("selected_polygons"),
         )
 
     def example_payload(self) -> Any:
@@ -203,9 +211,9 @@ class PolygonAnnotator(Component):
                     "color": "#FF0000",
                     "mask_opacity": 0.2,
                     "stroke_width": 0.7,
-                    "stroke_opacity": 0.6
+                    "stroke_opacity": 0.6,
                 }
-            ]
+            ],
         }
 
     def example_value(self) -> Any:
@@ -218,7 +226,7 @@ class PolygonAnnotator(Component):
                     "color": "#FF0000",
                     "mask_opacity": 0.2,
                     "stroke_width": 0.7,
-                    "stroke_opacity": 0.6
+                    "stroke_opacity": 0.6,
                 },
                 {
                     "id": "polygon2",
@@ -226,7 +234,7 @@ class PolygonAnnotator(Component):
                     "color": "#00FF00",
                     "mask_opacity": 0.2,
                     "stroke_width": 1,
-                    "stroke_opacity": 0.8
-                }
-            ]
+                    "stroke_opacity": 0.8,
+                },
+            ],
         }
