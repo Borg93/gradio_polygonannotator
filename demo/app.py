@@ -1,7 +1,6 @@
 import gradio as gr
 from gradio_polygonannotator import PolygonAnnotator
 
-# Example with document regions
 example_data = {
     "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&h=1200",
     "polygons": [
@@ -16,7 +15,7 @@ example_data = {
             "selected_stroke_opacity": 1.0,
             "display_text": "Date Line",
             "display_font_size": 14,
-            "display_text_color": "#FFFFFF"
+            "display_text_color": "#FFFFFF",
         },
         {
             "id": "salutation",
@@ -29,7 +28,7 @@ example_data = {
             "selected_stroke_opacity": 0.9,
             "display_text": "Salutation",
             "display_font_size": 14,
-            "display_text_color": "#000000"
+            "display_text_color": "#000000",
         },
         {
             "id": "main_text_block",
@@ -42,7 +41,7 @@ example_data = {
             "selected_stroke_opacity": 0.8,
             "display_text": "Main Text",
             "display_font_size": 14,
-            "display_text_color": "#FFFF00"
+            "display_text_color": "#FFFF00",
         },
         {
             "id": "closing_signature",
@@ -55,12 +54,11 @@ example_data = {
             "selected_stroke_opacity": 1.0,
             "display_text": "Signature",
             "display_font_size": 14,
-            "display_text_color": "#000000"
+            "display_text_color": "#000000",
         },
     ],
 }
 
-# Create dataframe data from polygon information
 polygon_table = [
     ["date_line", "Date Line", "#FF0000", 0.2, 0.7, 0.6],
     ["salutation", "Salutation", "#00FF00", 0.2, 1.0, 0.6],
@@ -70,15 +68,12 @@ polygon_table = [
 
 
 def process_viewer_selection(data, evt: gr.SelectData):
-    """Handle polygon selection from viewer and update dataframe selection"""
     if evt.value and data:
         selected_ids = evt.value if isinstance(evt.value, list) else [evt.value]
 
-        # Create highlighted dataframe data
         highlighted_table = []
         for row in polygon_table:
-            if row[0] in selected_ids:  # If this is a selected row
-                # Add highlighting markers to the selected row
+            if row[0] in selected_ids:
                 highlighted_row = [
                     f"→ {row[0]} ←",
                     f"→ {row[1]} ←",
@@ -91,7 +86,6 @@ def process_viewer_selection(data, evt: gr.SelectData):
             else:
                 highlighted_table.append(row)
 
-        # Create info text for all selected polygons
         info_lines = [f"Selected {len(selected_ids)} polygon(s):"]
         for selected_id in selected_ids:
             selected_polygon = next(
@@ -109,19 +103,16 @@ def process_viewer_selection(data, evt: gr.SelectData):
 
 
 def process_dataframe_selection(selected_data, evt: gr.SelectData):
-    """Handle row selection from dataframe and update viewer selection"""
     if evt.index is not None and evt.index[0] < len(polygon_table):
         selected_row = polygon_table[evt.index[0]]
         polygon_id = selected_row[0]
 
-        # Update the viewer data with the selected polygon
         updated_data = example_data.copy()
         updated_data["selected_polygons"] = [polygon_id]
 
-        # Create highlighted dataframe data for the selected row
         highlighted_table = []
         for i, row in enumerate(polygon_table):
-            if i == evt.index[0]:  # This is the selected row
+            if i == evt.index[0]:
                 highlighted_row = [
                     f"→ {row[0]} ←",
                     f"→ {row[1]} ←",
@@ -137,51 +128,41 @@ def process_dataframe_selection(selected_data, evt: gr.SelectData):
         info_text = f"Selected polygon: {polygon_id}\nName: {selected_row[1]}\nColor: {selected_row[2]}\nMask Opacity: {selected_row[3]}\nStroke Width: {selected_row[4]}\nStroke Opacity: {selected_row[5]}"
         return updated_data, info_text, highlighted_table
 
-    # Deselection
     updated_data = example_data.copy()
     updated_data["selected_polygons"] = []
     return updated_data, "No polygons selected", polygon_table
 
 
 def clear_selection():
-    """Clear polygon selection"""
     updated_data = example_data.copy()
     updated_data["selected_polygons"] = []
     return updated_data, "No polygons selected", polygon_table
 
 
 def select_polygon_by_id(polygon_id):
-    """Select polygon by ID from textbox input"""
     if not polygon_id or polygon_id.strip() == "":
-        # Empty input - clear selection
         updated_data = example_data.copy()
         updated_data["selected_polygons"] = []
         return updated_data, "No polygons selected", polygon_table
 
-    # Handle multiple IDs (comma-separated)
     polygon_ids = [id.strip() for id in polygon_id.split(",") if id.strip()]
     valid_ids = [p["id"] for p in example_data["polygons"]]
 
-    # Filter to only valid IDs
     valid_selected_ids = [id for id in polygon_ids if id in valid_ids]
     invalid_ids = [id for id in polygon_ids if id not in valid_ids]
 
     if not valid_selected_ids:
-        # No valid IDs
         updated_data = example_data.copy()
         updated_data["selected_polygons"] = []
         error_msg = f"Invalid polygon ID(s): {', '.join(invalid_ids)}. Valid IDs: {', '.join(valid_ids)}"
         return updated_data, error_msg, polygon_table
 
-    # Valid IDs - select polygons
     updated_data = example_data.copy()
     updated_data["selected_polygons"] = valid_selected_ids
 
-    # Create highlighted dataframe data
     highlighted_table = []
     for row in polygon_table:
-        if row[0] in valid_selected_ids:  # If this is a selected row
-            # Add highlighting markers to the selected row
+        if row[0] in valid_selected_ids:
             highlighted_row = [
                 f"→ {row[0]} ←",
                 f"→ {row[1]} ←",
@@ -194,7 +175,6 @@ def select_polygon_by_id(polygon_id):
         else:
             highlighted_table.append(row)
 
-    # Create info text
     info_lines = [f"Selected {len(valid_selected_ids)} polygon(s):"]
     for selected_id in valid_selected_ids:
         selected_polygon = next(
@@ -213,7 +193,6 @@ def select_polygon_by_id(polygon_id):
 
 
 def toggle_text_display(current_data, show_text):
-    """Toggle text display on/off for all polygons"""
     if not current_data:
         return current_data
 
@@ -223,18 +202,21 @@ def toggle_text_display(current_data, show_text):
     for polygon in current_data.get("polygons", []):
         updated_polygon = polygon.copy()
         if not show_text:
-            # Hide text by setting font size to 0
             updated_polygon["display_font_size"] = 0
         else:
-            # Show text by restoring original font size or default
             original_polygon = next(
-                (p for p in example_data["polygons"] if p["id"] == polygon["id"]),
-                None
+                (p for p in example_data["polygons"] if p["id"] == polygon["id"]), None
             )
             if original_polygon:
-                updated_polygon["display_text"] = original_polygon.get("display_text", polygon["id"])
-                updated_polygon["display_font_size"] = original_polygon.get("display_font_size", 14)
-                updated_polygon["display_text_color"] = original_polygon.get("display_text_color", "#000000")
+                updated_polygon["display_text"] = original_polygon.get(
+                    "display_text", polygon["id"]
+                )
+                updated_polygon["display_font_size"] = original_polygon.get(
+                    "display_font_size", 14
+                )
+                updated_polygon["display_text_color"] = original_polygon.get(
+                    "display_text_color", "#000000"
+                )
 
         updated_data["polygons"].append(updated_polygon)
 
@@ -273,7 +255,6 @@ with gr.Blocks() as demo:
                 value=polygon_table,
                 headers=["ID", "Name", "Color", "Mask", "Stroke W", "Stroke O"],
                 label="Polygon Data (Click rows to select)",
-                datatype=["str", "str", "str", "number", "number", "number"],
                 interactive=True,
             )
 
@@ -284,7 +265,7 @@ with gr.Blocks() as demo:
                 show_text_checkbox = gr.Checkbox(
                     label="Show Polygon Text",
                     value=True,
-                    info="Toggle text display on polygons"
+                    info="Toggle text display on polygons",
                 )
 
             with gr.Row():
@@ -361,7 +342,7 @@ with gr.Blocks() as demo:
     show_text_checkbox.change(
         toggle_text_display,
         inputs=[poly_annotator, show_text_checkbox],
-        outputs=[poly_annotator]
+        outputs=[poly_annotator],
     )
 
 if __name__ == "__main__":

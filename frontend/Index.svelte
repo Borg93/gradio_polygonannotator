@@ -153,13 +153,11 @@
     async function renderAnnotations() {
         if (!app || !value) return;
 
-        // Clean up existing elements
         app.stage.removeChildren();
         polygonGraphics.clear();
         polygonTexts.forEach((text) => text.destroy());
         polygonTexts.clear();
 
-        // Create text container with high z-index to render on top of polygons
         textContainer = new Container();
         textContainer.zIndex = 1000;
         app.stage.sortableChildren = true;
@@ -222,7 +220,6 @@
 
                     app.stage.addChild(imageSprite);
                 } catch (error) {
-                    console.error("Failed to load image:", error);
                     return;
                 }
             }
@@ -239,7 +236,7 @@
                         color = parseInt(colorStr, 16);
                     }
                 } catch (e) {
-                    console.error("Error parsing color:", e);
+                    color = 0xff0000;
                 }
 
                 const polygonMaskOpacity = polygon.mask_opacity ?? 0.2;
@@ -353,7 +350,6 @@
                 app.stage.addChild(graphics);
                 polygonGraphics.set(polygon.id, graphics);
 
-                // Create text label if display parameters are provided
                 if (polygon.display_text && polygon.display_font_size && polygon.display_font_size > 0) {
                     const text = createPolygonText(polygon);
                     const center = calculatePolygonCenter(polygon.coordinates);
@@ -428,10 +424,9 @@
                     color = parseInt(colorStr, 16);
                 }
             } catch (e) {
-                console.error("Error parsing color in drawPolygonPath:", e);
+                color = 0xff0000;
             }
 
-            // Use Pixi.js 8 drawing API
             graphics.poly(displayCoords.flat());
             graphics.fill({ color: color, alpha: maskAlpha });
             graphics.stroke({

@@ -18,43 +18,27 @@ if TYPE_CHECKING:
 
 class Polygon(GradioModel):
     id: str
-    coordinates: List[List[float]]  # [[x1,y1], [x2,y2], ...]
-    color: str  # hex color like "#FF0000"
-    mask_opacity: Optional[float] = 0.2  # fill opacity from 0.0 to 1.0, default 0.2
-    stroke_width: Optional[float] = 0.7  # stroke width in pixels, default 0.7
-    stroke_opacity: Optional[float] = 0.6  # stroke opacity from 0.0 to 1.0, default 0.6
-    selected_mask_opacity: Optional[float] = (
-        0.5  # mask opacity when selected, default 0.5
-    )
-    selected_stroke_opacity: Optional[float] = (
-        1.0  # stroke opacity when selected, default 1.0
-    )
-    display_text: Optional[str] = None  # text to display on the polygon
-    display_font_size: Optional[float] = None  # font size multiplier, default None (no text)
-    display_text_color: Optional[str] = "#000000"  # text color, default black
+    coordinates: List[List[float]]
+    color: str
+    mask_opacity: Optional[float] = 0.2
+    stroke_width: Optional[float] = 0.7
+    stroke_opacity: Optional[float] = 0.6
+    selected_mask_opacity: Optional[float] = 0.5
+    selected_stroke_opacity: Optional[float] = 1.0
+    display_text: Optional[str] = None
+    display_font_size: Optional[float] = None
+    display_text_color: Optional[str] = "#000000"
 
 
 class PolygonAnnotatorData(GradioModel):
     image: FileData
     polygons: List[Polygon]
-    selected_polygons: Optional[List[str]] = (
-        None  # List of IDs of the currently selected polygons
-    )
+    selected_polygons: Optional[List[str]] = None
 
 
 class PolygonAnnotator(Component):
     """
     Interactive polygon annotation component for visualizing and selecting polygon regions on images.
-
-    The PolygonAnnotator displays an image with customizable polygon overlays that users can interact with.
-    Features include multi-selection with Ctrl/Cmd+click, hover effects, and customizable appearance including
-    stroke width, opacity settings for both fill and stroke, with separate settings for selected states.
-
-    Perfect for:
-    - Document layout analysis and region selection
-    - Image segmentation visualization
-    - Interactive annotation review and editing
-    - Object detection result visualization
     """
 
     EVENTS = [
@@ -88,28 +72,6 @@ class PolygonAnnotator(Component):
         key: int | str | tuple[int | str, ...] | None = None,
         preserved_by_key: list[str] | str | None = "value",
     ):
-        """
-        Parameters:
-            value: Dictionary containing 'image' (FileData), 'polygons' (list with id, coordinates, color, opacities),
-                and optionally 'selected_polygons' (list of selected IDs).
-            label: Component label shown above the annotator.
-            every: Continuously calls `value` to recalculate it if `value` is a function.
-            inputs: Components used as inputs to calculate `value` if it's a function.
-            show_label: Whether to display the label.
-            show_download_button: Whether to show image download button.
-            height: Component height in pixels or CSS units.
-            width: Component width in pixels or CSS units.
-            container: Whether to wrap component in a container with padding.
-            scale: Relative size compared to adjacent components.
-            min_width: Minimum pixel width before wrapping.
-            interactive: Whether users can interact with polygons (selection/deselection).
-            visible: Whether component is visible ("hidden" keeps it in DOM but invisible).
-            elem_id: HTML DOM id for CSS targeting.
-            elem_classes: HTML DOM classes for CSS targeting.
-            render: Whether to render the component immediately.
-            key: Key for maintaining component identity across re-renders.
-            preserved_by_key: Parameters preserved across re-renders with same key.
-        """
         self.show_download_button = show_download_button
         self.height = height
         self.width = width
@@ -132,13 +94,6 @@ class PolygonAnnotator(Component):
         )
 
     def preprocess(self, payload: PolygonAnnotatorData | None) -> dict | None:
-        """
-        Parameters:
-            payload: The component data containing image and polygon annotations.
-        Returns:
-            Dictionary with image path, polygon data including coordinates, colors, opacities,
-            and the list of currently selected polygon IDs.
-        """
         if payload is None:
             return None
         return {
@@ -163,25 +118,15 @@ class PolygonAnnotator(Component):
         }
 
     def postprocess(self, value: dict | None) -> PolygonAnnotatorData | None:
-        """
-        Parameters:
-            value: Dictionary containing 'image' (file path or URL), 'polygons' (list of polygon dictionaries
-                   with id, coordinates, color, mask_opacity, stroke_width, stroke_opacity, and selection opacity settings),
-                   and optionally 'selected_polygons' (list of selected polygon IDs).
-        Returns:
-            Processed component data ready for display.
-        """
         if value is None:
             return None
 
-        # Handle the image path
         image_path = value.get("image")
         if isinstance(image_path, str):
             image_data = FileData(path=image_path)
         else:
             return None
 
-        # Handle polygons
         polygons = []
         for poly in value.get("polygons", []):
             polygons.append(
@@ -189,9 +134,7 @@ class PolygonAnnotator(Component):
                     id=poly["id"],
                     coordinates=poly["coordinates"],
                     color=poly.get("color", "#FF0000"),
-                    mask_opacity=poly.get(
-                        "mask_opacity", poly.get("opacity", 0.2)
-                    ),  # Support old 'opacity' key for backwards compatibility
+                    mask_opacity=poly.get("mask_opacity", poly.get("opacity", 0.2)),
                     stroke_width=poly.get("stroke_width", 0.7),
                     stroke_opacity=poly.get("stroke_opacity", 0.6),
                     selected_mask_opacity=poly.get("selected_mask_opacity", 0.5),
