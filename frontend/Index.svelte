@@ -128,6 +128,55 @@
         });
     }
 
+    function handlePolygonSelection(polygonId: string, event: any) {
+        if (!value) return;
+
+        const isMultiSelect = event.ctrlKey || event.metaKey;
+
+        if (selectedPolygonIds.includes(polygonId)) {
+            const newSelectedIds = selectedPolygonIds.filter(
+                (id) => id !== polygonId,
+            );
+            updateSelection(newSelectedIds);
+            selectedPolygonIds = newSelectedIds;
+
+            gradio.dispatch("select", {
+                index:
+                    newSelectedIds.length > 0
+                        ? value.polygons.findIndex(
+                              (p) =>
+                                  p.id ===
+                                  newSelectedIds[
+                                      newSelectedIds.length - 1
+                                  ],
+                          )
+                        : null,
+                value:
+                    newSelectedIds.length > 0
+                        ? newSelectedIds
+                        : null,
+            });
+            return;
+        }
+
+        let newSelectedIds: string[];
+        if (isMultiSelect) {
+            newSelectedIds = [...selectedPolygonIds, polygonId];
+        } else {
+            newSelectedIds = [polygonId];
+        }
+
+        updateSelection(newSelectedIds);
+        selectedPolygonIds = newSelectedIds;
+
+        gradio.dispatch("select", {
+            index: value.polygons.findIndex(
+                (p) => p.id === polygonId,
+            ),
+            value: newSelectedIds,
+        });
+    }
+
     async function initPixiApp() {
         if (!canvasContainer) return;
 
@@ -301,50 +350,7 @@
                 });
 
                 graphics.on("pointerdown", (event) => {
-                    const isMultiSelect = event.ctrlKey || event.metaKey;
-
-                    if (selectedPolygonIds.includes(polygon.id)) {
-                        const newSelectedIds = selectedPolygonIds.filter(
-                            (id) => id !== polygon.id,
-                        );
-                        updateSelection(newSelectedIds);
-                        selectedPolygonIds = newSelectedIds;
-
-                        gradio.dispatch("select", {
-                            index:
-                                newSelectedIds.length > 0
-                                    ? value.polygons.findIndex(
-                                          (p) =>
-                                              p.id ===
-                                              newSelectedIds[
-                                                  newSelectedIds.length - 1
-                                              ],
-                                      )
-                                    : null,
-                            value:
-                                newSelectedIds.length > 0
-                                    ? newSelectedIds
-                                    : null,
-                        });
-                        return;
-                    }
-
-                    let newSelectedIds: string[];
-                    if (isMultiSelect) {
-                        newSelectedIds = [...selectedPolygonIds, polygon.id];
-                    } else {
-                        newSelectedIds = [polygon.id];
-                    }
-
-                    updateSelection(newSelectedIds);
-                    selectedPolygonIds = newSelectedIds;
-
-                    gradio.dispatch("select", {
-                        index: value.polygons.findIndex(
-                            (p) => p.id === polygon.id,
-                        ),
-                        value: newSelectedIds,
-                    });
+                    handlePolygonSelection(polygon.id, event);
                 });
 
                 app.stage.addChild(graphics);
@@ -357,6 +363,13 @@
                     text.anchor.set(0.5, 0.5);
                     text.x = center.x;
                     text.y = center.y;
+
+                    text.eventMode = "static";
+                    text.cursor = "pointer";
+
+                    text.on("pointerdown", (event) => {
+                        handlePolygonSelection(polygon.id, event);
+                    });
 
                     textContainer!.addChild(text);
                     polygonTexts.set(polygon.id, text);
