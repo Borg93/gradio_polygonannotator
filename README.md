@@ -18,7 +18,31 @@ sdk_version: 5.46.1
 # `gradio_polygonannotator`
 <img alt="Static Badge" src="https://img.shields.io/badge/version%20-%200.1.0%20-%20orange"> <a href="https://github.com/yourusername/gradio-polygonannotator/issues" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Issues-white?logo=github&logoColor=black"></a>
 
-Interactive polygon annotation component for Gradio with multi-selection, hover effects, and customizable appearance
+Interactive polygon annotation component for Gradio with multi-selection, hover effects, zoom/pan controls, and customizable appearance
+
+## Features
+
+- 🖱️ **Interactive Polygon Selection** - Click to select/deselect polygons and text labels
+- 🔍 **Zoom & Pan Controls** - Navigate large images with mouse and keyboard
+- 🎨 **Customizable Appearance** - Configure colors, opacity, stroke width for each polygon
+- 📝 **Text Labels** - Display text on polygons with customizable font size and color
+- ✨ **Hover Effects** - Visual feedback when hovering over polygons
+- 🎯 **Multi-Selection** - Select multiple polygons with Ctrl/Cmd+Click
+
+## Controls & Hotkeys
+
+### Selection
+- **Click** - Select/deselect polygons or text labels
+- **Ctrl/Cmd+Click** - Add/remove from multi-selection
+
+### Navigation
+- **Mouse Wheel** - Zoom in/out at cursor position
+- **+/=** - Zoom in (10%)
+- **-** - Zoom out (10%)
+- **Ctrl/Cmd+0** - Reset to original view
+- **Arrow Keys (↑↓←→)** - Pan the view
+- **Middle Mouse Button** - Click and drag to pan
+- **Shift+Left Click** - Click and drag to pan (alternative)
 
 ## Installation
 

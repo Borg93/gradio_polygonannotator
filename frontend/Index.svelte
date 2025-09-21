@@ -63,6 +63,13 @@
     let polygonTexts: Map<string, Text> = new Map();
     let textContainer: Container | null = null;
     let selectedPolygonIds: string[] = [];
+    let viewportContainer: Container | null = null;
+    let isDragging = false;
+    let lastPointerPosition = { x: 0, y: 0 };
+    let initialScale = 1;
+    let initialPosition = { x: 0, y: 0 };
+    let minScale = 0.5;
+    let maxScale = 3;
 
     type ImageRect = {
         left: number;
@@ -197,20 +204,170 @@
 
         app.stage.eventMode = "static";
         app.stage.hitArea = app.screen;
+
+        viewportContainer = new Container();
+        viewportContainer.eventMode = "static";
+        app.stage.addChild(viewportContainer);
+
+        setupControls();
+    }
+
+    function setupControls() {
+        if (!app || !viewportContainer) return;
+
+        window.addEventListener("keydown", handleKeydown);
+
+        app.stage.on("pointerdown", (event) => {
+            if (event.button === 1 || (event.button === 0 && event.shiftKey)) {
+                isDragging = true;
+                lastPointerPosition = { x: event.global.x, y: event.global.y };
+                app.canvas.style.cursor = "grabbing";
+            }
+        });
+
+        app.stage.on("pointermove", (event) => {
+            if (isDragging && viewportContainer) {
+                const dx = event.global.x - lastPointerPosition.x;
+                const dy = event.global.y - lastPointerPosition.y;
+
+                viewportContainer.x += dx;
+                viewportContainer.y += dy;
+
+                lastPointerPosition = { x: event.global.x, y: event.global.y };
+            }
+        });
+
+        app.stage.on("pointerup", () => {
+            isDragging = false;
+            app.canvas.style.cursor = "default";
+        });
+
+        app.stage.on("pointerupoutside", () => {
+            isDragging = false;
+            app.canvas.style.cursor = "default";
+        });
+
+        app.canvas.addEventListener("wheel", handleWheel, { passive: false });
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+        if (!viewportContainer) return;
+
+        switch(event.key) {
+            case "=":
+            case "+":
+                zoomIn();
+                event.preventDefault();
+                break;
+            case "-":
+            case "_":
+                zoomOut();
+                event.preventDefault();
+                break;
+            case "0":
+                if (event.ctrlKey || event.metaKey) {
+                    resetView();
+                    event.preventDefault();
+                }
+                break;
+            case "ArrowLeft":
+                viewportContainer.x += 20;
+                event.preventDefault();
+                break;
+            case "ArrowRight":
+                viewportContainer.x -= 20;
+                event.preventDefault();
+                break;
+            case "ArrowUp":
+                viewportContainer.y += 20;
+                event.preventDefault();
+                break;
+            case "ArrowDown":
+                viewportContainer.y -= 20;
+                event.preventDefault();
+                break;
+        }
+    }
+
+    function handleWheel(event: WheelEvent) {
+        if (!viewportContainer || !app) return;
+
+        event.preventDefault();
+
+        const delta = event.deltaY < 0 ? 1.05 : 0.95;
+        const newScale = viewportContainer.scale.x * delta;
+
+        if (newScale >= minScale && newScale <= maxScale) {
+            const worldPos = {
+                x: (event.offsetX - viewportContainer.x) / viewportContainer.scale.x,
+                y: (event.offsetY - viewportContainer.y) / viewportContainer.scale.y,
+            };
+
+            viewportContainer.scale.x = newScale;
+            viewportContainer.scale.y = newScale;
+
+            viewportContainer.x = event.offsetX - worldPos.x * newScale;
+            viewportContainer.y = event.offsetY - worldPos.y * newScale;
+        }
+    }
+
+    function zoomIn() {
+        if (!viewportContainer || !app) return;
+
+        const newScale = Math.min(viewportContainer.scale.x * 1.1, maxScale);
+        const center = { x: app.screen.width / 2, y: app.screen.height / 2 };
+
+        const worldPos = {
+            x: (center.x - viewportContainer.x) / viewportContainer.scale.x,
+            y: (center.y - viewportContainer.y) / viewportContainer.scale.y,
+        };
+
+        viewportContainer.scale.x = newScale;
+        viewportContainer.scale.y = newScale;
+
+        viewportContainer.x = center.x - worldPos.x * newScale;
+        viewportContainer.y = center.y - worldPos.y * newScale;
+    }
+
+    function zoomOut() {
+        if (!viewportContainer || !app) return;
+
+        const newScale = Math.max(viewportContainer.scale.x * 0.9, minScale);
+        const center = { x: app.screen.width / 2, y: app.screen.height / 2 };
+
+        const worldPos = {
+            x: (center.x - viewportContainer.x) / viewportContainer.scale.x,
+            y: (center.y - viewportContainer.y) / viewportContainer.scale.y,
+        };
+
+        viewportContainer.scale.x = newScale;
+        viewportContainer.scale.y = newScale;
+
+        viewportContainer.x = center.x - worldPos.x * newScale;
+        viewportContainer.y = center.y - worldPos.y * newScale;
+    }
+
+    function resetView() {
+        if (!viewportContainer) return;
+
+        viewportContainer.scale.x = initialScale;
+        viewportContainer.scale.y = initialScale;
+        viewportContainer.x = initialPosition.x;
+        viewportContainer.y = initialPosition.y;
     }
 
     async function renderAnnotations() {
-        if (!app || !value) return;
+        if (!app || !value || !viewportContainer) return;
 
-        app.stage.removeChildren();
+        viewportContainer.removeChildren();
         polygonGraphics.clear();
         polygonTexts.forEach((text) => text.destroy());
         polygonTexts.clear();
 
         textContainer = new Container();
         textContainer.zIndex = 1000;
-        app.stage.sortableChildren = true;
-        app.stage.addChild(textContainer);
+        viewportContainer.sortableChildren = true;
+        viewportContainer.addChild(textContainer);
 
         if (value.image) {
             let imageUrl = "";
@@ -267,7 +424,15 @@
                         naturalHeight: texture.height,
                     };
 
-                    app.stage.addChild(imageSprite);
+                    viewportContainer.addChild(imageSprite);
+
+                    initialScale = 1;
+                    initialPosition.x = 0;
+                    initialPosition.y = 0;
+                    viewportContainer.scale.x = 1;
+                    viewportContainer.scale.y = 1;
+                    viewportContainer.x = 0;
+                    viewportContainer.y = 0;
                 } catch (error) {
                     return;
                 }
@@ -353,7 +518,7 @@
                     handlePolygonSelection(polygon.id, event);
                 });
 
-                app.stage.addChild(graphics);
+                viewportContainer.addChild(graphics);
                 polygonGraphics.set(polygon.id, graphics);
 
                 if (polygon.display_text && polygon.display_font_size && polygon.display_font_size > 0) {
@@ -460,6 +625,8 @@
 
     onDestroy(() => {
         if (app) {
+            app.canvas.removeEventListener("wheel", handleWheel);
+            window.removeEventListener("keydown", handleKeydown);
             app.destroy(true, { children: true, texture: true });
         }
     });

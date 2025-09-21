@@ -241,13 +241,25 @@ with gr.Blocks() as demo:
     gr.Markdown("""
     # PolygonAnnotator - Advanced Interactive Demo
 
-    This demo showcases all the features of the PolygonAnnotator component:
-    - **Click** on polygons to select/deselect them
+    ## 🎮 Controls & Hotkeys
+
+    ### Selection
+    - **Click** on polygons or text labels to select/deselect
     - **Ctrl/Cmd+Click** for multiple selection
     - **Click dataframe rows** to select polygons
     - **Enter polygon IDs** manually in the textbox
+
+    ### Navigation
+    - **Mouse Wheel** - Zoom in/out at cursor position
+    - **+/=** - Zoom in (10%)
+    - **-** - Zoom out (10%)
+    - **Ctrl/Cmd+0** - Reset view to original
+    - **Arrow Keys** - Pan view (↑↓←→)
+    - **Middle Mouse / Shift+Drag** - Pan view with mouse
+
+    ### Features
     - **Clear button** to deselect all
-    - **Toggle text display** on polygons
+    - **Toggle text display** checkbox for polygon labels
     """)
 
     with gr.Row():
