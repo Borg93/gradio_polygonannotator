@@ -1,7 +1,8 @@
 import gradio as gr
-from gradio_polygonannotator import PolygonAnnotator
+from backend.gradio_polygonannotator import PolygonAnnotator
 from typing import Literal
 
+# Example with document regions
 example_data = {
     "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&h=1200",
     "polygons": [
@@ -14,6 +15,9 @@ example_data = {
             "stroke_opacity": 0.6,
             "selected_mask_opacity": 0.5,
             "selected_stroke_opacity": 1.0,
+            "display_text": "Date Line",
+            "display_font_size": 14,
+            "display_text_color": "#FFFFFF"
         },
         {
             "id": "salutation",
@@ -24,6 +28,9 @@ example_data = {
             "stroke_opacity": 0.6,
             "selected_mask_opacity": 0.4,
             "selected_stroke_opacity": 0.9,
+            "display_text": "Salutation",
+            "display_font_size": 14,
+            "display_text_color": "#000000"
         },
         {
             "id": "main_text_block",
@@ -34,6 +41,9 @@ example_data = {
             "stroke_opacity": 0.5,
             "selected_mask_opacity": 0.4,
             "selected_stroke_opacity": 0.8,
+            "display_text": "Main Text",
+            "display_font_size": 14,
+            "display_text_color": "#FFFF00"
         },
         {
             "id": "closing_signature",
@@ -44,6 +54,9 @@ example_data = {
             "stroke_opacity": 0.7,
             "selected_mask_opacity": 0.6,
             "selected_stroke_opacity": 1.0,
+            "display_text": "Signature",
+            "display_font_size": 14,
+            "display_text_color": "#000000"
         },
     ],
 }
@@ -184,6 +197,35 @@ def select_polygon_by_id(polygon_id):
     return updated_data, info_text, highlighted_table
 
 
+def toggle_text_display(current_data, show_text):
+    """Toggle text display on/off for all polygons"""
+    if not current_data:
+        return current_data
+
+    updated_data = current_data.copy()
+    updated_data["polygons"] = []
+
+    for polygon in current_data.get("polygons", []):
+        updated_polygon = polygon.copy()
+        if not show_text:
+            # Hide text by setting font size to 0
+            updated_polygon["display_font_size"] = 0
+        else:
+            # Show text by restoring original font size or default
+            original_polygon = next(
+                (p for p in example_data["polygons"] if p["id"] == polygon["id"]),
+                None
+            )
+            if original_polygon:
+                updated_polygon["display_text"] = original_polygon.get("display_text", polygon["id"])
+                updated_polygon["display_font_size"] = original_polygon.get("display_font_size", 1.0)
+                updated_polygon["display_text_color"] = original_polygon.get("display_text_color", "#000000")
+
+        updated_data["polygons"].append(updated_polygon)
+
+    return updated_data
+
+
 with gr.Blocks() as demo:
     gr.Markdown("""
     # PolygonAnnotator - Advanced Interactive Demo
@@ -220,6 +262,14 @@ with gr.Blocks() as demo:
             )
 
             clear_button = gr.Button("🗑️ Clear All Selections", variant="secondary")
+
+            # Add text display toggle
+            with gr.Row():
+                show_text_checkbox = gr.Checkbox(
+                    label="Show Polygon Text",
+                    value=True,
+                    info="Toggle text display on polygons"
+                )
 
             with gr.Row():
                 polygon_id_input = gr.Textbox(
@@ -286,6 +336,13 @@ with gr.Blocks() as demo:
         select_polygon_by_id,
         inputs=[polygon_id_input],
         outputs=[poly_annotator, selected_info, polygon_dataframe],
+    )
+
+    # Handle text display toggle
+    show_text_checkbox.change(
+        toggle_text_display,
+        inputs=[poly_annotator, show_text_checkbox],
+        outputs=[poly_annotator]
     )
 
 if __name__ == "__main__":

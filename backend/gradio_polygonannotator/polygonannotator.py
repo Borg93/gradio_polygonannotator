@@ -29,6 +29,9 @@ class Polygon(GradioModel):
     selected_stroke_opacity: Optional[float] = (
         1.0  # stroke opacity when selected, default 1.0
     )
+    display_text: Optional[str] = None  # text to display on the polygon
+    display_font_size: Optional[float] = None  # font size multiplier, default None (no text)
+    display_text_color: Optional[str] = "#000000"  # text color, default black
 
 
 class PolygonAnnotatorData(GradioModel):
@@ -150,6 +153,9 @@ class PolygonAnnotator(Component):
                     "stroke_opacity": p.stroke_opacity,
                     "selected_mask_opacity": p.selected_mask_opacity,
                     "selected_stroke_opacity": p.selected_stroke_opacity,
+                    "display_text": p.display_text,
+                    "display_font_size": p.display_font_size,
+                    "display_text_color": p.display_text_color,
                 }
                 for p in payload.polygons
             ],
@@ -190,6 +196,9 @@ class PolygonAnnotator(Component):
                     stroke_opacity=poly.get("stroke_opacity", 0.6),
                     selected_mask_opacity=poly.get("selected_mask_opacity", 0.5),
                     selected_stroke_opacity=poly.get("selected_stroke_opacity", 1.0),
+                    display_text=poly.get("display_text", None),
+                    display_font_size=poly.get("display_font_size", None),
+                    display_text_color=poly.get("display_text_color", "#000000"),
                 )
             )
 

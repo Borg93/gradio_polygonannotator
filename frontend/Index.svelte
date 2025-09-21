@@ -2,7 +2,15 @@
 
 <script lang="ts">
     import { onMount, onDestroy, tick } from "svelte";
-    import * as PIXI from "pixi.js";
+    import {
+        Application,
+        Container,
+        Graphics,
+        Text,
+        Sprite,
+        Texture,
+        TextStyle,
+    } from "pixi.js";
     import type { Gradio } from "@gradio/utils";
     import { Block, BlockLabel } from "@gradio/atoms";
     import { Image as ImageIcon } from "@gradio/icons";
@@ -24,6 +32,9 @@
             stroke_opacity?: number;
             selected_mask_opacity?: number;
             selected_stroke_opacity?: number;
+            display_text?: string | null;
+            display_font_size?: number | null;
+            display_text_color?: string;
         }>;
         selected_polygons?: string[] | null;
     } | null = null;
@@ -46,10 +57,13 @@
     }>;
 
     let canvasContainer: HTMLDivElement;
-    let app: PIXI.Application;
-    let imageSprite: PIXI.Sprite | null = null;
-    let polygonGraphics: Map<string, PIXI.Graphics> = new Map();
+    let app: Application;
+    let imageSprite: Sprite | null = null;
+    let polygonGraphics: Map<string, Graphics> = new Map();
+    let polygonTexts: Map<string, Text> = new Map();
+    let textContainer: Container | null = null;
     let selectedPolygonIds: string[] = [];
+
     type ImageRect = {
         left: number;
         top: number;
@@ -60,6 +74,7 @@
         naturalWidth: number;
         naturalHeight: number;
     };
+
     let imageRect: ImageRect = {
         left: 0,
         top: 0,
@@ -94,9 +109,21 @@
 
             graphics.clear();
             if (newSelectedIds.includes(polygonId)) {
-                drawPolygonPath(graphics, polygon, imageSprite!, selectedMaskAlpha, strokeWidth, selectedStrokeAlpha);
+                drawPolygonPath(
+                    graphics,
+                    polygon,
+                    selectedMaskAlpha,
+                    strokeWidth,
+                    selectedStrokeAlpha,
+                );
             } else {
-                drawPolygonPath(graphics, polygon, imageSprite!, originalMaskAlpha, strokeWidth, originalStrokeAlpha);
+                drawPolygonPath(
+                    graphics,
+                    polygon,
+                    originalMaskAlpha,
+                    strokeWidth,
+                    originalStrokeAlpha,
+                );
             }
         });
     }
@@ -107,7 +134,7 @@
         const containerWidth = canvasContainer.clientWidth || 800;
         const containerHeight = canvasContainer.clientHeight || 600;
 
-        app = new PIXI.Application();
+        app = new Application();
         await app.init({
             width: containerWidth,
             height: containerHeight,
@@ -126,8 +153,18 @@
     async function renderAnnotations() {
         if (!app || !value) return;
 
+        // Clean up existing elements
         app.stage.removeChildren();
         polygonGraphics.clear();
+        polygonTexts.forEach((text) => text.destroy());
+        polygonTexts.clear();
+
+        // Create text container with high z-index to render on top of polygons
+        textContainer = new Container();
+        textContainer.zIndex = 1000;
+        app.stage.sortableChildren = true;
+        app.stage.addChild(textContainer);
+
         if (value.image) {
             let imageUrl = "";
 
@@ -157,8 +194,8 @@
                     );
 
                     const loadedImage = await imageLoadPromise;
-                    const texture = PIXI.Texture.from(loadedImage);
-                    imageSprite = new PIXI.Sprite(texture);
+                    const texture = Texture.from(loadedImage);
+                    imageSprite = new Sprite(texture);
 
                     const scaleX = app.screen.width / texture.width;
                     const scaleY = app.screen.height / texture.height;
@@ -193,7 +230,7 @@
 
         if (value.polygons && value.polygons.length > 0 && imageSprite) {
             value.polygons.forEach((polygon) => {
-                const graphics = new PIXI.Graphics();
+                const graphics = new Graphics();
 
                 let color = 0xff0000;
                 try {
@@ -208,30 +245,26 @@
                 const polygonMaskOpacity = polygon.mask_opacity ?? 0.2;
                 const selectedMaskAlpha = polygon.selected_mask_opacity ?? 0.5;
                 const polygonStrokeOpacity = polygon.stroke_opacity ?? 0.6;
-                const selectedStrokeAlpha = polygon.selected_stroke_opacity ?? 1.0;
+                const selectedStrokeAlpha =
+                    polygon.selected_stroke_opacity ?? 1.0;
                 const strokeWidth = polygon.stroke_width ?? 0.7;
                 const initialMaskAlpha = selectedPolygonIds.includes(polygon.id)
                     ? selectedMaskAlpha
                     : polygonMaskOpacity;
-                const initialStrokeAlpha = selectedPolygonIds.includes(polygon.id)
+                const initialStrokeAlpha = selectedPolygonIds.includes(
+                    polygon.id,
+                )
                     ? selectedStrokeAlpha
                     : polygonStrokeOpacity;
 
                 if (polygon.coordinates && polygon.coordinates.length > 0) {
-                    const displayCoords = polygon.coordinates.map((coord) => {
-                        return [
-                            (coord[0] / (imageRect.naturalWidth - 1)) *
-                                imageRect.width +
-                                imageRect.left,
-                            (coord[1] / (imageRect.naturalHeight - 1)) *
-                                imageRect.height +
-                                imageRect.top,
-                        ];
-                    });
-
-                    graphics.poly(displayCoords.flat());
-                    graphics.fill({ color: color, alpha: initialMaskAlpha });
-                    graphics.stroke({ width: strokeWidth, color: color, alpha: initialStrokeAlpha });
+                    drawPolygonPath(
+                        graphics,
+                        polygon,
+                        initialMaskAlpha,
+                        strokeWidth,
+                        initialStrokeAlpha,
+                    );
                 }
 
                 graphics.eventMode = "static";
@@ -239,7 +272,10 @@
 
                 const originalMaskAlpha = polygonMaskOpacity;
                 const hoverMaskAlpha = Math.min(polygonMaskOpacity + 0.1, 1.0);
-                const hoverStrokeAlpha = Math.min(polygonStrokeOpacity + 0.2, 1.0);
+                const hoverStrokeAlpha = Math.min(
+                    polygonStrokeOpacity + 0.2,
+                    1.0,
+                );
 
                 graphics.on("pointerover", () => {
                     if (!selectedPolygonIds.includes(polygon.id)) {
@@ -247,7 +283,6 @@
                         drawPolygonPath(
                             graphics,
                             polygon,
-                            imageSprite!,
                             hoverMaskAlpha,
                             strokeWidth,
                             hoverStrokeAlpha,
@@ -261,7 +296,6 @@
                         drawPolygonPath(
                             graphics,
                             polygon,
-                            imageSprite!,
                             originalMaskAlpha,
                             strokeWidth,
                             polygonStrokeOpacity,
@@ -270,18 +304,15 @@
                 });
 
                 graphics.on("pointerdown", (event) => {
-                    // Check if Ctrl/Cmd key is held for multi-selection
                     const isMultiSelect = event.ctrlKey || event.metaKey;
 
                     if (selectedPolygonIds.includes(polygon.id)) {
-                        // Deselect this polygon
                         const newSelectedIds = selectedPolygonIds.filter(
                             (id) => id !== polygon.id,
                         );
                         updateSelection(newSelectedIds);
                         selectedPolygonIds = newSelectedIds;
 
-                        // Dispatch deselection event to Gradio
                         gradio.dispatch("select", {
                             index:
                                 newSelectedIds.length > 0
@@ -301,20 +332,16 @@
                         return;
                     }
 
-                    // Select polygon
                     let newSelectedIds: string[];
                     if (isMultiSelect) {
-                        // Add to existing selection
                         newSelectedIds = [...selectedPolygonIds, polygon.id];
                     } else {
-                        // Replace selection
                         newSelectedIds = [polygon.id];
                     }
 
                     updateSelection(newSelectedIds);
                     selectedPolygonIds = newSelectedIds;
 
-                    // Dispatch select event to Gradio
                     gradio.dispatch("select", {
                         index: value.polygons.findIndex(
                             (p) => p.id === polygon.id,
@@ -325,20 +352,64 @@
 
                 app.stage.addChild(graphics);
                 polygonGraphics.set(polygon.id, graphics);
+
+                // Create text label if display parameters are provided
+                if (polygon.display_text && polygon.display_font_size && polygon.display_font_size > 0) {
+                    const text = createPolygonText(polygon);
+                    const center = calculatePolygonCenter(polygon.coordinates);
+
+                    text.anchor.set(0.5, 0.5);
+                    text.x = center.x;
+                    text.y = center.y;
+
+                    textContainer!.addChild(text);
+                    polygonTexts.set(polygon.id, text);
+                }
             });
         }
     }
 
+    function createPolygonText(polygon: any): Text {
+        const style = new TextStyle({
+            fontSize: polygon.display_font_size || 14,
+            fill: polygon.display_text_color || "#000000",
+            fontWeight: "bold",
+            align: "center"
+        });
+
+        return new Text({
+            text: polygon.display_text,
+            style: style
+        });
+    }
+
+    function calculatePolygonCenter(coordinates: number[][]): { x: number; y: number } {
+        const displayCoords = coordinates.map((coord) => [
+            (coord[0] / (imageRect.naturalWidth - 1)) * imageRect.width + imageRect.left,
+            (coord[1] / (imageRect.naturalHeight - 1)) * imageRect.height + imageRect.top,
+        ]);
+
+        let centerX = 0;
+        let centerY = 0;
+        displayCoords.forEach((coord) => {
+            centerX += coord[0];
+            centerY += coord[1];
+        });
+
+        return {
+            x: centerX / displayCoords.length,
+            y: centerY / displayCoords.length
+        };
+    }
+
     function drawPolygonPath(
-        graphics: PIXI.Graphics,
+        graphics: Graphics,
         polygon: any,
-        imageSprite: PIXI.Sprite,
         maskAlpha: number = 0.2,
         strokeWidth: number = 0.7,
         strokeAlpha: number = 0.6,
     ) {
         if (polygon.coordinates && polygon.coordinates.length > 0) {
-            // Transform coordinates from natural image space to display space
             const displayCoords = polygon.coordinates.map((coord: number[]) => {
                 return [
                     (coord[0] / (imageRect.naturalWidth - 1)) *
@@ -363,7 +434,11 @@
             // Use Pixi.js 8 drawing API
             graphics.poly(displayCoords.flat());
             graphics.fill({ color: color, alpha: maskAlpha });
-            graphics.stroke({ width: strokeWidth, color: color, alpha: strokeAlpha });
+            graphics.stroke({
+                width: strokeWidth,
+                color: color,
+                alpha: strokeAlpha,
+            });
         }
     }
 
@@ -381,7 +456,6 @@
         }
     });
 
-    // Handle canvas resize
     async function handleResize() {
         if (!canvasContainer || !app) return;
 
@@ -390,7 +464,6 @@
 
         if (newWidth !== app.screen.width || newHeight !== app.screen.height) {
             app.renderer.resize(newWidth, newHeight);
-            // Re-render annotations with updated canvas dimensions
             await renderAnnotations();
         }
     }
