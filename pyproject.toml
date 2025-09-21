@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gradio_polygonannotator"
-version = "0.1.0"
+version = "0.2.0"
 description = "Interactive polygon annotation component for Gradio with multi-selection, hover effects, and customizable appearance"
 readme = "README.md"
 license = "Apache-2.0"
