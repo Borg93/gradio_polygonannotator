@@ -271,19 +271,19 @@
                 }
                 break;
             case "ArrowLeft":
-                viewportContainer.x += 20;
+                viewportContainer!.x += 20;
                 event.preventDefault();
                 break;
             case "ArrowRight":
-                viewportContainer.x -= 20;
+                viewportContainer!.x -= 20;
                 event.preventDefault();
                 break;
             case "ArrowUp":
-                viewportContainer.y += 20;
+                viewportContainer!.y += 20;
                 event.preventDefault();
                 break;
             case "ArrowDown":
-                viewportContainer.y -= 20;
+                viewportContainer!.y -= 20;
                 event.preventDefault();
                 break;
         }
@@ -295,79 +295,79 @@
         event.preventDefault();
 
         const delta = event.deltaY < 0 ? 1.05 : 0.95;
-        const newScale = viewportContainer.scale.x * delta;
+        const newScale = viewportContainer!.scale.x * delta;
 
         if (newScale >= minScale && newScale <= maxScale) {
             const worldPos = {
-                x: (event.offsetX - viewportContainer.x) / viewportContainer.scale.x,
-                y: (event.offsetY - viewportContainer.y) / viewportContainer.scale.y,
+                x: (event.offsetX - viewportContainer!.x) / viewportContainer!.scale.x,
+                y: (event.offsetY - viewportContainer!.y) / viewportContainer!.scale.y,
             };
 
-            viewportContainer.scale.x = newScale;
-            viewportContainer.scale.y = newScale;
+            viewportContainer!.scale.x = newScale;
+            viewportContainer!.scale.y = newScale;
 
-            viewportContainer.x = event.offsetX - worldPos.x * newScale;
-            viewportContainer.y = event.offsetY - worldPos.y * newScale;
+            viewportContainer!.x = event.offsetX - worldPos.x * newScale;
+            viewportContainer!.y = event.offsetY - worldPos.y * newScale;
         }
     }
 
     function zoomIn() {
         if (!viewportContainer || !app) return;
 
-        const newScale = Math.min(viewportContainer.scale.x * 1.1, maxScale);
+        const newScale = Math.min(viewportContainer!.scale.x * 1.1, maxScale);
         const center = { x: app.screen.width / 2, y: app.screen.height / 2 };
 
         const worldPos = {
-            x: (center.x - viewportContainer.x) / viewportContainer.scale.x,
-            y: (center.y - viewportContainer.y) / viewportContainer.scale.y,
+            x: (center.x - viewportContainer!.x) / viewportContainer!.scale.x,
+            y: (center.y - viewportContainer!.y) / viewportContainer!.scale.y,
         };
 
-        viewportContainer.scale.x = newScale;
-        viewportContainer.scale.y = newScale;
+        viewportContainer!.scale.x = newScale;
+        viewportContainer!.scale.y = newScale;
 
-        viewportContainer.x = center.x - worldPos.x * newScale;
-        viewportContainer.y = center.y - worldPos.y * newScale;
+        viewportContainer!.x = center.x - worldPos.x * newScale;
+        viewportContainer!.y = center.y - worldPos.y * newScale;
     }
 
     function zoomOut() {
         if (!viewportContainer || !app) return;
 
-        const newScale = Math.max(viewportContainer.scale.x * 0.9, minScale);
+        const newScale = Math.max(viewportContainer!.scale.x * 0.9, minScale);
         const center = { x: app.screen.width / 2, y: app.screen.height / 2 };
 
         const worldPos = {
-            x: (center.x - viewportContainer.x) / viewportContainer.scale.x,
-            y: (center.y - viewportContainer.y) / viewportContainer.scale.y,
+            x: (center.x - viewportContainer!.x) / viewportContainer!.scale.x,
+            y: (center.y - viewportContainer!.y) / viewportContainer!.scale.y,
         };
 
-        viewportContainer.scale.x = newScale;
-        viewportContainer.scale.y = newScale;
+        viewportContainer!.scale.x = newScale;
+        viewportContainer!.scale.y = newScale;
 
-        viewportContainer.x = center.x - worldPos.x * newScale;
-        viewportContainer.y = center.y - worldPos.y * newScale;
+        viewportContainer!.x = center.x - worldPos.x * newScale;
+        viewportContainer!.y = center.y - worldPos.y * newScale;
     }
 
     function resetView() {
         if (!viewportContainer) return;
 
-        viewportContainer.scale.x = initialScale;
-        viewportContainer.scale.y = initialScale;
-        viewportContainer.x = initialPosition.x;
-        viewportContainer.y = initialPosition.y;
+        viewportContainer!.scale.x = initialScale;
+        viewportContainer!.scale.y = initialScale;
+        viewportContainer!.x = initialPosition.x;
+        viewportContainer!.y = initialPosition.y;
     }
 
     async function renderAnnotations() {
         if (!app || !value || !viewportContainer) return;
 
-        viewportContainer.removeChildren();
+        viewportContainer!.removeChildren();
         polygonGraphics.clear();
         polygonTexts.forEach((text) => text.destroy());
         polygonTexts.clear();
 
         textContainer = new Container();
         textContainer.zIndex = 1000;
-        viewportContainer.sortableChildren = true;
-        viewportContainer.addChild(textContainer);
+        viewportContainer!.sortableChildren = true;
+        viewportContainer!.addChild(textContainer);
 
         if (value.image) {
             let imageUrl = "";
@@ -424,15 +424,15 @@
                         naturalHeight: texture.height,
                     };
 
-                    viewportContainer.addChild(imageSprite);
+                    viewportContainer!.addChild(imageSprite);
 
                     initialScale = 1;
                     initialPosition.x = 0;
                     initialPosition.y = 0;
-                    viewportContainer.scale.x = 1;
-                    viewportContainer.scale.y = 1;
-                    viewportContainer.x = 0;
-                    viewportContainer.y = 0;
+                    viewportContainer!.scale.x = 1;
+                    viewportContainer!.scale.y = 1;
+                    viewportContainer!.x = 0;
+                    viewportContainer!.y = 0;
                 } catch (error) {
                     return;
                 }
@@ -518,7 +518,7 @@
                     handlePolygonSelection(polygon.id, event);
                 });
 
-                viewportContainer.addChild(graphics);
+                viewportContainer!.addChild(graphics);
                 polygonGraphics.set(polygon.id, graphics);
 
                 if (polygon.display_text && polygon.display_font_size && polygon.display_font_size > 0) {
