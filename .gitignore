@@ -11,3 +11,4 @@ __tmp/*
 node_modules
 backend/**/templates/
 .venv
+.playwright-mcp

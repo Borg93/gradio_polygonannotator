@@ -70,6 +70,7 @@
     let initialPosition = { x: 0, y: 0 };
     let minScale = 0.5;
     let maxScale = 3;
+    let isMouseOverCanvas = false;
 
     type ImageRect = {
         left: number;
@@ -217,6 +218,17 @@
 
         window.addEventListener("keydown", handleKeydown);
 
+        // Track mouse hover state for canvas area
+        if (canvasContainer) {
+            canvasContainer.addEventListener("mouseenter", () => {
+                isMouseOverCanvas = true;
+            });
+
+            canvasContainer.addEventListener("mouseleave", () => {
+                isMouseOverCanvas = false;
+            });
+        }
+
         app.stage.on("pointerdown", (event) => {
             if (event.button === 1 || (event.button === 0 && event.shiftKey)) {
                 isDragging = true;
@@ -251,7 +263,7 @@
     }
 
     function handleKeydown(event: KeyboardEvent) {
-        if (!viewportContainer) return;
+        if (!viewportContainer || !isMouseOverCanvas) return;
 
         switch(event.key) {
             case "=":
@@ -627,6 +639,10 @@
         if (app) {
             app.canvas.removeEventListener("wheel", handleWheel);
             window.removeEventListener("keydown", handleKeydown);
+            if (canvasContainer) {
+                canvasContainer.removeEventListener("mouseenter", () => {});
+                canvasContainer.removeEventListener("mouseleave", () => {});
+            }
             app.destroy(true, { children: true, texture: true });
         }
     });
