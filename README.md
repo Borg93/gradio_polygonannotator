@@ -18,6 +18,8 @@ sdk_version: 5.46.1
 # `gradio_polygonannotator`
 <a href="https://pypi.org/project/gradio_polygonannotator/" target="_blank"><img alt="PyPI - Version" src="https://img.shields.io/pypi/v/gradio_polygonannotator"></a> <a href="https://github.com/yourusername/gradio-polygonannotator/issues" target="_blank"><img alt="Static Badge" src="https://img.shields.io/badge/Issues-white?logo=github&logoColor=black"></a>
 
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/Gabriel/gradio_polygonannotator)
+
 Interactive polygon annotation component for Gradio with multi-selection, hover effects, and customizable appearance
 
 ## Installation
